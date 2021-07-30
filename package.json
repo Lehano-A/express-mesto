@@ -1,11 +1,12 @@
 {
   "name": "express-mesto",
   "version": "1.0.0",
-  "description": "",
+  "description": "backend",
   "main": "app.js",
   "scripts": {
-    "start": "npx eslint",
+    "start": "node app.js",
     "dev": "nodemon app.js"
+
   },
   "keywords": [],
   "author": "Lehano",
