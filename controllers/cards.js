@@ -1,15 +1,12 @@
 const Card = require('../models/card');
 
-const { handlerErrors } = require('../errors/errors');
+const { handlerErrors } = require('../utils/errors');
 
-const { regExp } = require('./users')
-
-/* ПОЛУЧЕНИЕ КАРТОЧКИ */
+/* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 module.exports.getCards = (req, res) => {
-  console.log(regExp);
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка при получении данных всех карточек' }));
+    .catch((err) => handlerErrors(err, res));
 };
 
 /* СОЗДАНИЕ КАРТОЧКИ */
@@ -17,33 +14,26 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const { _id } = req.user;
 
-  if (!regExp.exec(req.body.link)) {
-    const err = {
-      name: 'TypeError',
-      message: 'Неожиданный тип значения',
-    };
-    return handlerErrors(err, res);
-  }
-
   Card.create({ name, link, owner: _id })
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.send({
+      data:
+      {
+        _id: card._id,
+        name: card.name,
+        link: card.link,
+        owner: card.owner,
+        createdAt: card.createdAt,
+      },
+    }))
     .catch((err) => handlerErrors(err, res));
 };
 
 /* УДАЛЕНИЕ КАРТОЧКИ */
 module.exports.deleteCard = (req, res) => {
-  const { _id } = req.body;
-  const ownerId = req.user._id;
+  const { cardId } = req.params;
 
-  if (ownerId !== '61010712a1757b6b14bc5d82') { /* ФИКТИВНОЕ СРАВНЕНИЕ */
-    const err = {
-      name: 'Forbidden',
-      message: 'No rights',
-    };
-    return handlerErrors(err, res);
-  }
-
-  return Card.findByIdAndRemove(_id)
+  return Card.findByIdAndRemove(cardId)
+    .select('-__v')
     .then((card) => res.send({ data: card }))
     .catch((err) => handlerErrors(err, res));
 };
@@ -55,8 +45,9 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .select('-createdAt -__v')
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка во время добавления лайка' }));
+    .catch((err) => handlerErrors(err, res));
 };
 
 /* УБРАТЬ ЛАЙК С КАРТОЧКИ */
@@ -66,6 +57,7 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .select('-createdAt -__v')
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка во время удаления лайка' }));
+    .catch((err) => handlerErrors(err, res));
 };
