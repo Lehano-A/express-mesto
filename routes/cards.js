@@ -1,5 +1,8 @@
 const router = require('express').Router();
 
+const { checkLinkImg } = require('../middlewares/different');
+const { checkUserToken } = require('../middlewares/user');
+
 const {
   getCards,
   createCard,
@@ -10,9 +13,11 @@ const {
 
 router.get('/', getCards); /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 
+router.post('/', checkLinkImg); /* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
 router.post('/', createCard); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
 
-router.delete('/', deleteCard); /* УДАЛЕНИЕ КАРТОЧКИ */
+router.delete('/:cardId', checkUserToken); /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА */
+router.delete('/:cardId', deleteCard); /* УДАЛЕНИЕ КАРТОЧКИ */
 
 router.put('/:cardId/likes', likeCard); /* ДОБАВЛЕНИЕ ЛАЙКА КАРТОЧКЕ */
 

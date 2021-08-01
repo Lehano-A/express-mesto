@@ -27,18 +27,9 @@ app.use((req, res, next) => {
 
 app.use('/users', require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
 
-app.use('/users/:userId', require('./routes/users')); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
-
-app.use('/users/me', require('./routes/users')); /* ОБНОВЛЕНИЕ ПРОФИЛЯ + АВАТАРА */
-
 app.use('/cards', require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
-
-app.use('/cards/:cardId', require('./routes/cards')); /* УДАЛЕНИЕ КАРТОЧКИ */
-
-app.use('/cards/:cardId/likes', require('./routes/cards')); /* ИЗМЕНЕНИЕ ЛАЙКА */
 
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
-  console.log('CONSOLE: ВСЁ РАБОТАЕТ');
 });
