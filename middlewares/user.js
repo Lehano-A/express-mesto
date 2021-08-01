@@ -14,3 +14,19 @@ module.exports.checkUserToken = (req, res, next) => {
 
   return next();
 };
+
+/* ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
+module.exports.checkUpdateDataUser = (req, res, next) => {
+  const { name, about } = req.body;
+
+  if ((name || about).length === 0) {
+    const err = {
+      name: 'ValidationError',
+      message: 'shorter than the minimum',
+    };
+
+    return handlerErrors(err, res);
+  }
+
+  return next();
+};

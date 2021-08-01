@@ -5,7 +5,6 @@ const { handlerErrors } = require('../utils/errors'); /* ОБРАБОТЧИК О
 /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .select('-__v')
     .then((users) => res.send({ data: users }))
     .catch((err) => handlerErrors(err, res));
 };
@@ -14,10 +13,19 @@ module.exports.getUsers = (req, res) => {
 module.exports.getOneUser = (req, res) => {
   const { userId } = req.params;
 
-  User.findById(userId)
-    .select('-__v')
+  User.findById(userId).orFail(() => {
+    const error = new Error('Такой пользователь не найден в базе данных');
+    error.statusCode = 404;
+    throw error;
+  })
     .then((user) => res.send({ data: user }))
-    .catch((err) => handlerErrors(err, res));
+    .catch(() => {
+      const err = {
+        name: 'CustomNotFoundUser',
+        message: 'Такой пользователь не найден в базе данных',
+      };
+      handlerErrors(err, res);
+    });
 };
 
 /* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
@@ -53,7 +61,6 @@ module.exports.updateAvatar = (req, res) => {
   const { _id } = req.user;
 
   return User.findByIdAndUpdate(_id, req.body, { new: true })
-    .select('-__v')
     .then((user) => { res.send({ data: user }); })
     .catch((err) => handlerErrors(err, res));
 };
