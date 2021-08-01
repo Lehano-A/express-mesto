@@ -16,6 +16,7 @@ const errorsMessageList = {
   unexpectedTypeLink: 'Неожиданный тип значения переданной ссылки',
   notValidToken: 'Несовпадение токенов',
   notFoundRoute: 'Такого маршрута не имеется',
+  notFoundUser: 'Такой пользователь не найден в базе данных',
 };
 
 const {
@@ -33,13 +34,14 @@ const {
   unexpectedTypeLink,
   notValidToken,
   notFoundRoute,
+  notFoundUser,
 } = errorsMessageList;
 
 module.exports.handlerErrors = (err, res) => {
   if (err.name === 'CastError' && err.message.includes(forModelUser)) {
-    error(err404, 'Такой пользователь не найден', res);
+    error(err400, 'Такой пользователь не найден', res);
   } else if (err.name === 'CastError' && err.message.includes(forModelCard)) {
-    error(err404, 'Такая карточка не найдена', res);
+    error(err400, 'Такая карточка не найдена', res);
   } else if (err.name === 'ValidationError' && err.message.includes(tooShorterLength)) {
     error(err400, 'Минимальная длина поля составляет 2 символа', res);
   } else if (err.name === 'ValidationError' && err.message.includes(tooLongerLength)) {
@@ -50,6 +52,8 @@ module.exports.handlerErrors = (err, res) => {
     error(err403, 'Недостаточно прав. Ваш токен не совпадает с токеном владельца', res);
   } else if (err.name === 'CustomNotFoundRoute' && err.message.includes(notFoundRoute)) {
     error(err404, 'Такого маршрута не имеется', res);
+  } else if (err.name === 'CustomNotFoundUser' && err.message.includes(notFoundUser)) {
+    error(err404, 'Такой пользователь не найден в базе данных', res);
   } else {
     error(err500, 'Возникла внутренняя ошибка сервера', res);
   }
