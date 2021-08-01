@@ -15,6 +15,7 @@ const errorsMessageList = {
   tooLongerLength: 'longer than the maximum',
   unexpectedTypeLink: 'Неожиданный тип значения переданной ссылки',
   notValidToken: 'Несовпадение токенов',
+  notFoundRoute: 'Такого маршрута не имеется',
 };
 
 const {
@@ -31,6 +32,7 @@ const {
   tooLongerLength,
   unexpectedTypeLink,
   notValidToken,
+  notFoundRoute,
 } = errorsMessageList;
 
 module.exports.handlerErrors = (err, res) => {
@@ -46,6 +48,8 @@ module.exports.handlerErrors = (err, res) => {
     error(err400, 'Была передана некорректная ссылка на изображение. Проверьте правильность ввода и формат изображения: png, jpg или jpeg', res);
   } else if (err.name === 'CustomNotValidToken' && err.message.includes(notValidToken)) {
     error(err403, 'Недостаточно прав. Ваш токен не совпадает с токеном владельца', res);
+  } else if (err.name === 'CustomNotFoundRoute' && err.message.includes(notFoundRoute)) {
+    error(err404, 'Такого маршрута не имеется', res);
   } else {
     error(err500, 'Возникла внутренняя ошибка сервера', res);
   }
