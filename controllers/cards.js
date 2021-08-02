@@ -33,9 +33,19 @@ module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
 
   return Card.findByIdAndRemove(cardId)
-    .select('-__v')
+    .orFail(() => {
+      const error = new Error('Такая карточка не найдена в базе данных');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((card) => res.send({ data: card }))
-    .catch((err) => handlerErrors(err, res));
+    .catch(() => {
+      const err = {
+        name: 'CustomNotFoundCard',
+        message: 'Такая карточка не найдена в базе данных',
+      };
+      handlerErrors(err, res);
+    });
 };
 
 /* ПОСТАВИТЬ ЛАЙК КАРТОЧКЕ */
@@ -45,9 +55,20 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .select('-createdAt -__v')
+    .orFail(() => {
+      const error = new Error('Такая карточка не найдена в базе данных');
+      error.statusCode = 404;
+      throw error;
+    })
+    .select('-createdAt')
     .then((card) => res.send({ data: card }))
-    .catch((err) => handlerErrors(err, res));
+    .catch(() => {
+      const err = {
+        name: 'CustomNotFoundCard',
+        message: 'Такая карточка не найдена в базе данных',
+      };
+      handlerErrors(err, res);
+    });
 };
 
 /* УБРАТЬ ЛАЙК С КАРТОЧКИ */
@@ -57,7 +78,18 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .select('-createdAt -__v')
+    .orFail(() => {
+      const error = new Error('Такая карточка не найдена в базе данных');
+      error.statusCode = 404;
+      throw error;
+    })
+    .select('-createdAt')
     .then((card) => res.send({ data: card }))
-    .catch((err) => handlerErrors(err, res));
+    .catch(() => {
+      const err = {
+        name: 'CustomNotFoundCard',
+        message: 'Такая карточка не найдена в базе данных',
+      };
+      handlerErrors(err, res);
+    });
 };
