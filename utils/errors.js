@@ -17,6 +17,7 @@ const errorsMessageList = {
   notValidToken: 'Несовпадение токенов',
   notFoundRoute: 'Такого маршрута не имеется',
   notFoundUser: 'Такой пользователь не найден в базе данных',
+  notFoundCard: 'Такая карточка не найдена в базе данных',
 };
 
 const {
@@ -35,6 +36,7 @@ const {
   notValidToken,
   notFoundRoute,
   notFoundUser,
+  notFoundCard,
 } = errorsMessageList;
 
 module.exports.handlerErrors = (err, res) => {
@@ -54,6 +56,8 @@ module.exports.handlerErrors = (err, res) => {
     error(err404, 'Такого маршрута не имеется', res);
   } else if (err.name === 'CustomNotFoundUser' && err.message.includes(notFoundUser)) {
     error(err404, 'Такой пользователь не найден в базе данных', res);
+  } else if (err.name === 'CustomNotFoundCard' && err.message.includes(notFoundCard)) {
+    error(err404, 'Такая карточка не найдена в базе данных', res);
   } else {
     error(err500, 'Возникла внутренняя ошибка сервера', res);
   }

@@ -13,11 +13,12 @@ module.exports.getUsers = (req, res) => {
 module.exports.getOneUser = (req, res) => {
   const { userId } = req.params;
 
-  User.findById(userId).orFail(() => {
-    const error = new Error('Такой пользователь не найден в базе данных');
-    error.statusCode = 404;
-    throw error;
-  })
+  User.findById(userId)
+    .orFail(() => {
+      const error = new Error('Такой пользователь не найден в базе данных');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((user) => res.send({ data: user }))
     .catch(() => {
       const err = {

@@ -13,11 +13,13 @@ const {
 
 router.get('/', getCards); /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 
-router.post('/', checkLinkImg); /* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.post('/', createCard); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
+/* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
+/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
+router.post('/', checkLinkImg, createCard);
 
-router.delete('/:cardId', checkUserToken); /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА */
-router.delete('/:cardId', deleteCard); /* УДАЛЕНИЕ КАРТОЧКИ */
+/* УДАЛЕНИЕ КАРТОЧКИ */
+/* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА */
+router.delete('/:cardId', checkUserToken, deleteCard);
 
 router.put('/:cardId/likes', likeCard); /* ДОБАВЛЕНИЕ ЛАЙКА КАРТОЧКЕ */
 

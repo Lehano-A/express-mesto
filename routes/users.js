@@ -15,14 +15,16 @@ router.get('/', getUsers); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛ
 
 router.get('/:userId', getOneUser); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
 
-router.post('/', checkLinkImg); /* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.post('/', createUser); /* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
+/* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
+/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
+router.post('/', checkLinkImg, createUser);
 
-router.patch('/me', checkUserToken); /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА */
-router.patch('/me', checkUpdateDataUser); /* ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
-router.patch('/me', updateProfile); /* ОБНОВЛЕНИЕ ПРОФИЛЯ */
+/* ОБНОВЛЕНИЕ ПРОФИЛЯ */
+/* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
+router.patch('/me', checkUserToken, checkUpdateDataUser, updateProfile);
 
-router.patch('/me/avatar', checkLinkImg); /* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.patch('/me/avatar', updateAvatar); /* ОБНОВЛЕНИЕ АВАТАРА */
+/* ОБНОВЛЕНИЕ АВАТАРА */
+/* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
+router.patch('/me/avatar', checkUserToken, checkLinkImg, updateAvatar);
 
 module.exports = router;
