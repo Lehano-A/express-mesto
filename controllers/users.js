@@ -1,3 +1,7 @@
+const bcrypt = require('bcryptjs');
+
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user'); /* МОДЕЛЬ ПОЛЬЗОВАТЕЛЯ */
 
 const { handlerErrors } = require('../utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
@@ -31,21 +35,25 @@ module.exports.getOneUser = (req, res) => {
 
 /* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
-    .then((user) => res.send(
-      {
-        data:
-        {
-          _id: user._id,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-        },
-      },
-    ))
-    .catch((err) => handlerErrors(err, res));
+  const { name, about, avatar, email, password } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User.create({ name, about, avatar, email, password: hash })
+        .then((user) => {
+          res.send(
+            {
+              data:
+              {
+                _id: user._id,
+                name: user.name,
+                about: user.about,
+                avatar: user.avatar,
+              },
+            },
+          );
+        })
+        .catch((err) => { handlerErrors(err, res); });
+    });
 };
 
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ */
@@ -64,4 +72,8 @@ module.exports.updateAvatar = (req, res) => {
   return User.findByIdAndUpdate(_id, req.body, { new: true })
     .then((user) => { res.send({ data: user }); })
     .catch((err) => handlerErrors(err, res));
+};
+
+module.exports.login = (req, res) => {
+
 };
