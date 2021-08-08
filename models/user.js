@@ -31,15 +31,14 @@ const userSchema = new mongoose.Schema({
   },
 }, { versionKey: false });
 
-userSchema.statics.findUserByCredentials = function (req, res) {
-  const { email, password } = req.body;
-
-  this.findOne({ email }) /* ПОИСК ПОЛЬЗОВАТЕЛЯ В БД */
+/* МЕТОД ПРОВЕРКИ ВАЛИДНОСТИ ПОЧТЫ И ТОКЕНА */
+userSchema.static('findUserByCredentials', function (email, password) {
+  return this.findOne({ email }) /* ПОИСК ПОЛЬЗОВАТЕЛЯ В БД */
     .then((user) => {
       if (!user) { /* ЕСЛИ НЕ НАШЁЛСЯ */
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
-
+      /* ЕСЛИ НАШЁЛСЯ */
       return bcrypt.compare(password, user.password) /* ПРОВЕРЯЕМ ВВЕДЁННЫЙ ПАРОЛЬ С ХЕШЕМ ПАРОЛЯ */
         .then((matched) => {
           if (!matched) { /* ЕСЛИ НЕ СОВПАЛ */
@@ -48,6 +47,6 @@ userSchema.statics.findUserByCredentials = function (req, res) {
           return user;
         });
     });
-};
+});
 
 module.exports = mongoose.model('user', userSchema);

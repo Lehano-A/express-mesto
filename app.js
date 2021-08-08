@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 
 const mongoose = require('mongoose');
@@ -9,6 +11,15 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 const { handlerErrors } = require('./utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
+
+const { checkLinkImg } = require('./middlewares/different');
+
+const { auth } = require('./middlewares/auth');
+
+const {
+  login,
+  createUser,
+} = require('./controllers/users');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -26,6 +37,13 @@ app.use((req, res, next) => {
   };
   next();
 });
+app.post('/signin', login); /* АУТЕНТИФИКАЦИЯ ПОЛЬЗОВАТЕЛЯ */
+
+/* РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ */
+/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
+app.post('/signup', checkLinkImg, createUser);
+
+app.use(auth); /* ПРОВЕРКА АВТОРИЗАЦИИ */
 
 app.use('/users', require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
 
@@ -42,4 +60,5 @@ app.use('*', (req, res) => {
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
+  console.log('ВСЁ РАБОТАЕТ')
 });
