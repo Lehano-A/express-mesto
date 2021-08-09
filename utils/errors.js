@@ -39,26 +39,34 @@ const {
   notFoundCard,
 } = errorsMessageList;
 
-module.exports.handlerErrors = (err, res) => {
+function sendDataForError(err, code, text) {
+  let { statusCode, message } = err;
+
+  statusCode = code;
+  message = text;
+  return { statusCode, message };
+}
+
+module.exports.handlerMongoErrors = (err, res) => {
   if (err.name === 'CastError' && err.message.includes(forModelUser)) {
-    error(err400, 'Такой пользователь не найден', res);
-  } else if (err.name === 'CastError' && err.message.includes(forModelCard)) {
-    error(err400, 'Такая карточка не найдена', res);
-  } else if (err.name === 'ValidationError' && err.message.includes(tooShorterLength)) {
-    error(err400, 'Минимальная длина поля составляет 2 символа', res);
-  } else if (err.name === 'ValidationError' && err.message.includes(tooLongerLength)) {
-    error(err400, 'Максимальная длина поля составляет 30 символов', res);
-  } else if (err.name === 'CustomTypeError' && err.message.includes(unexpectedTypeLink)) {
-    error(err400, 'Была передана некорректная ссылка на изображение. Проверьте правильность ввода и формат изображения: png, jpg или jpeg', res);
-  } else if (err.name === 'CustomNotValidToken' && err.message.includes(notValidToken)) {
-    error(err403, 'Недостаточно прав. Ваш токен не совпадает с токеном владельца', res);
-  } else if (err.name === 'CustomNotFoundRoute' && err.message.includes(notFoundRoute)) {
-    error(err404, 'Такого маршрута не имеется', res);
-  } else if (err.name === 'CustomNotFoundUser' && err.message.includes(notFoundUser)) {
-    error(err404, 'Такой пользователь не найден в базе данных', res);
-  } else if (err.name === 'CustomNotFoundCard' && err.message.includes(notFoundCard)) {
-    error(err404, 'Такая карточка не найдена в базе данных', res);
-  } else {
-    error(err500, 'Возникла внутренняя ошибка сервера', res);
+    return sendDataForError(err, 400, 'Такой пользователь не найден в базе данных');
   }
+
+  if (err.name === 'CastError' && err.message.includes(forModelCard)) {
+    sendDataForError(err, 400, 'Такая карточка не найдена в базе данных');
+  }
+
+  if (err.name === 'ValidationError' && err.message.includes(tooShorterLength)) {
+    error(err400, 'Минимальная длина поля составляет 2 символа', res);
+  }
+
+  if (err.name === 'ValidationError' && err.message.includes(tooLongerLength)) {
+    error(err400, 'Максимальная длина поля составляет 30 символов', res);
+  }
+  return undefined;
 };
+
+
+module.exports.responseToError = (res, statusCode, message) => {
+  res.status(statusCode).send({ message: statusCode === 500 ? 'Запрос не может быть выполнен. Возникла внутренняя ошибка сервера.' : message });
+}

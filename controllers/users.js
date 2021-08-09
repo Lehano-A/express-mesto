@@ -13,6 +13,10 @@ const auth = require('../middlewares/auth');
 
 const { JWT_SECRET_CODE } = process.env;
 
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
+
+const { handlerMongoErrors, responseToError } = require('../utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
+
 
 /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
 module.exports.getUsers = (req, res) => {
@@ -22,23 +26,17 @@ module.exports.getUsers = (req, res) => {
 };
 
 /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
-module.exports.getOneUser = (req, res) => {
+module.exports.getOneUser = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
-    .orFail(() => {
-      const error = new Error('Такой пользователь не найден в базе данных');
-      error.statusCode = 404;
-      throw error;
+    .then((user) => {
+      if (!user) {
+        throw next(new HandlerNotFoundError('Такой пользователь не найден в базе данных'));
+      }
+      res.send({ data: user });
     })
-    .then((user) => res.send({ data: user }))
-    .catch(() => {
-      const err = {
-        name: 'CustomNotFoundUser',
-        message: 'Такой пользователь не найден в базе данных',
-      };
-      handlerErrors(err, res);
-    });
+    .catch(next);
 };
 
 /* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
@@ -99,11 +97,10 @@ module.exports.login = (req, res) => {
     .catch((err) => { console.log(err); });
 };
 
+/* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕМ СВОЕГО ПРОФАЙЛА */
 module.exports.getMyProfile = (req, res) => {
 
-  const { _id } = req.user;
-
-  User.findById({ _id: _id })
+  User.findById({ _id: req.user._id }) /* ИСПОЛЬЗУЕМ _id ИЗ МИДЛВАРА auth */
     .then((user) => {
       res.send({
         data:
