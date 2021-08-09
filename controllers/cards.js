@@ -1,95 +1,77 @@
 const Card = require('../models/card');
 
-const { handlerErrors } = require('../utils/errors');
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
+
 
 /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
-    .then((cards) => res.send({ data: cards }))
-    .catch((err) => handlerErrors(err, res));
+    .then((cards) => {
+      res.send({ data: cards })
+    })
+    .catch((err) => next(err));
 };
 
 /* СОЗДАНИЕ КАРТОЧКИ */
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const { _id } = req.user;
 
   Card.create({ name, link, owner: _id })
-    .then((card) => res.send({
-      data:
-      {
-        _id: card._id,
-        name: card.name,
-        link: card.link,
-        owner: card.owner,
-        createdAt: card.createdAt,
-      },
-    }))
-    .catch((err) => handlerErrors(err, res));
+    .then((card) => {
+      res.send({
+        data:
+        {
+          _id: card._id,
+          name: card.name,
+          link: card.link,
+          owner: card.owner,
+          createdAt: card.createdAt,
+        },
+      });
+    })
+    .catch((err) => next(err));
 };
 
 /* УДАЛЕНИЕ КАРТОЧКИ */
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-
+  /* МИДЛВЭР ПРОВЕРИЛ ВЛАДЕЛЬЦА И НАЛИЧИЕ КАРТОЧКИ */
   return Card.findByIdAndRemove(cardId)
-    .orFail(() => {
-      const error = new Error('Такая карточка не найдена в базе данных');
-      error.statusCode = 404;
-      throw error;
-    })
-    .then((card) => res.send({ data: card }))
-    .catch(() => {
-      const err = {
-        name: 'CustomNotFoundCard',
-        message: 'Такая карточка не найдена в базе данных',
-      };
-      handlerErrors(err, res);
-    });
+    .then((card) => { res.send({ data: card }); })
+    .catch((err) => next(err));
 };
 
 /* ПОСТАВИТЬ ЛАЙК КАРТОЧКЕ */
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => {
-      const error = new Error('Такая карточка не найдена в базе данных');
-      error.statusCode = 404;
-      throw error;
-    })
     .select('-createdAt')
-    .then((card) => res.send({ data: card }))
-    .catch(() => {
-      const err = {
-        name: 'CustomNotFoundCard',
-        message: 'Такая карточка не найдена в базе данных',
-      };
-      handlerErrors(err, res);
-    });
+    .then((card) => {
+      if (!card) {
+        throw next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'))
+      }
+      res.send({ data: card });
+    })
+    .catch(next);
 };
 
 /* УБРАТЬ ЛАЙК С КАРТОЧКИ */
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => {
-      const error = new Error('Такая карточка не найдена в базе данных');
-      error.statusCode = 404;
-      throw error;
-    })
     .select('-createdAt')
-    .then((card) => res.send({ data: card }))
-    .catch(() => {
-      const err = {
-        name: 'CustomNotFoundCard',
-        message: 'Такая карточка не найдена в базе данных',
-      };
-      handlerErrors(err, res);
-    });
+    .then((card) => {
+      if (!card) {
+        throw next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'))
+      }
+      res.send({ data: card });
+    })
+    .catch(next);
 };

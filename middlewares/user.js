@@ -1,18 +1,26 @@
+const Card = require('../models/card');
+
 const { handlerErrors } = require('../utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
 
-/* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА */
-module.exports.checkUserToken = (req, res, next) => {
-  const { _id } = req.user;
+const HandlerForbiddenError = require('../utils/handlersErrors/HandlerForbiddenError');
 
-  if (_id !== '61010712a1757b6b14bc5d82') {
-    const err = {
-      name: 'CustomNotValidToken',
-      message: 'Несовпадение токенов',
-    };
-    return handlerErrors(err, res);
-  }
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
 
-  return next();
+/* ПРОВЕРКА ВЛАДЕЛЬЦА КАРТОЧКИ НА ВЛАДЕЛЬЦА */
+module.exports.checkCardOwner = (req, res, next) => {
+  const { _id } = req.user; /* ПОЛУЧАЕМ _id ПОЛЬЗОВАТЕЛЯ ОТ МИДЛВЭРА auth */
+
+  Card.findById(req.params.cardId) /* ИЩЕМ КАРТОЧКУ */
+    .then((card) => { /* ЕСЛИ КАРТОЧКА НАШЛАСЬ */
+      if (!card) { /* НО ВНУТРИ ЕЁ ПО КАКИМ-ТО ПРИЧИНАМ НЕ ОКАЗАЛОСЬ */
+        throw next(new HandlerNotFoundError('Такой карточки не имеется'));
+      }
+      const owner = String(card.owner);
+      /* ЕСЛИ ПОЛЬЗОВАТЕЛЬ НЕ СОВПАЛ С ВЛАДЕЛЬЦЕМ */
+      if (_id !== owner) { throw next(new HandlerForbiddenError('Недостаточно прав. Владельцем данной карточки является другой пользователь.')) }; /* ПРОВЕРЯЕМ ВЛАДЕЛЬЦА КАРТОЧКИ */
+      next();
+    })
+    .catch(next);
 };
 
 /* ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */

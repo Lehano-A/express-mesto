@@ -22,10 +22,10 @@ router.post('/', createUser);
 
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ */
 /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
-router.patch('/me', checkUserToken, checkUpdateDataUser, updateProfile);
+router.patch('/me', checkUpdateDataUser, updateProfile);
 
 /* ОБНОВЛЕНИЕ АВАТАРА */
 /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.patch('/me/avatar', checkUserToken, checkLinkImg, updateAvatar);
+router.patch('/me/avatar', checkLinkImg, updateAvatar);
 
 module.exports = router;

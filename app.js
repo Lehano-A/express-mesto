@@ -10,7 +10,9 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
-const { handlerErrors } = require('./utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
+const cookieParser = require('cookie-parser');
+
+const { handlerMongoErrors, responseToError } = require('./utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
 
 const { checkLinkImg } = require('./middlewares/different');
 
@@ -28,15 +30,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
+app.use(cookieParser());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '61010712a1757b6b14bc5d82',
-  };
-  next();
-});
 app.post('/signin', login); /* АУТЕНТИФИКАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 
 /* РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ */
@@ -54,11 +52,24 @@ app.use('*', (req, res) => {
     name: 'CustomNotFoundRoute',
     message: 'Такого маршрута не имеется',
   };
-  return handlerErrors(err, res);
+  return handlerMongoErrors(err, res);
 });
 
 app.use(express.static(__dirname));
 
+/* ЦЕНТРАЛИЗОВАННЫЙ ОБРАБОТЧИК */
+app.use((err, req, res, next) => {
+  const mongoError = handlerMongoErrors(err);
+
+  if (mongoError) { /* ЕСЛИ ОШИБКА ОТ MONGO */
+    const { statusCode, message } = mongoError;
+    return responseToError(res, statusCode, message);
+  }
+
+  const { statusCode = 500, message } = err; /* ЕСЛИ HTTP-ОШИБКА */
+  return responseToError(res, statusCode, message);
+});
+
 app.listen(PORT, () => {
-  console.log('ВСЁ РАБОТАЕТ')
+  console.log('ВСЁ РАБОТАЕТ');
 });
