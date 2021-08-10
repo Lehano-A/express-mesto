@@ -1,4 +1,4 @@
-/* НЕДЕЙСТВИТЕЛЬНЫЙ ОШИБКИ В ЗАПРОСЕ КЛИЕНТА */
+/* ОШИБКИ В ЗАПРОСЕ КЛИЕНТА */
 class HandlerBadRequestError extends Error {
   constructor(message) {
     super(message);

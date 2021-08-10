@@ -1,28 +1,16 @@
-
 const bcrypt = require('bcryptjs');
-
-const crypto = require('crypto');
 
 const jwt = require('jsonwebtoken');
 
-const User = require('../models/user'); /* МОДЕЛЬ ПОЛЬЗОВАТЕЛЯ */
-
-const { handlerErrors } = require('../utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
-
-const auth = require('../middlewares/auth');
+const User = require('../models/user');
 
 const { JWT_SECRET_CODE } = process.env;
 
-const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
-
-const { handlerMongoErrors, responseToError } = require('../utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
-
-
 /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => handlerErrors(err, res));
+    .catch(next);
 };
 
 /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
@@ -31,20 +19,24 @@ module.exports.getOneUser = (req, res, next) => {
 
   User.findById(userId)
     .then((user) => {
-      if (!user) {
-        throw next(new HandlerNotFoundError('Такой пользователь не найден в базе данных'));
-      }
       res.send({ data: user });
     })
     .catch(next);
 };
 
 /* СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ */
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar, email, password } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt.hash(password, 10)
+
     .then((hash) => {
-      User.create({ name, about, avatar, email, password: hash })
+      User.create(
+        {
+          name, about, avatar, email, password: hash,
+        },
+      )
         .then((user) => {
           res.send(
             {
@@ -58,30 +50,30 @@ module.exports.createUser = (req, res) => {
             },
           );
         })
-        .catch((err) => { handlerErrors(err, res); });
+        .catch(next);
     });
 };
 
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ */
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { _id } = req.user;
 
   User.findByIdAndUpdate(_id, req.body, { new: true, runValidators: true })
-    .then((user) => { res.send({ data: user }); })
-    .catch((err) => { handlerErrors(err, res); });
+    .then((user) => res.send({ data: user }))
+    .catch(next);
 };
 
 /* ОБНОВЛЕНИЕ АВАТАРА ПОЛЬЗОВАТЕЛЯ */
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { _id } = req.user;
 
   return User.findByIdAndUpdate(_id, req.body, { new: true })
-    .then((user) => { res.send({ data: user }); })
-    .catch((err) => handlerErrors(err, res));
+    .then((user) => res.send({ data: user }))
+    .catch(next);
 };
 
 /* АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ */
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -94,12 +86,11 @@ module.exports.login = (req, res) => {
       })
         .end(); /* ТЕЛА ОТВЕТА НЕТ, ПОЭТОМУ ЗАВЕРШАЕМ ПРОЦЕДУРУ ФУНКЦИЕЙ end() */
     })
-    .catch((err) => { console.log(err); });
+    .catch(next);
 };
 
 /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕМ СВОЕГО ПРОФАЙЛА */
-module.exports.getMyProfile = (req, res) => {
-
+module.exports.getMyProfile = (req, res, next) => {
   User.findById({ _id: req.user._id }) /* ИСПОЛЬЗУЕМ _id ИЗ МИДЛВАРА auth */
     .then((user) => {
       res.send({
@@ -112,5 +103,5 @@ module.exports.getMyProfile = (req, res) => {
         },
       });
     })
-    .catch((err) => { err })
-}
+    .catch(next);
+};
