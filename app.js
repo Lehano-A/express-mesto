@@ -12,9 +12,11 @@ const app = express();
 
 const cookieParser = require('cookie-parser');
 
-const { handlerMongoErrors, responseToError } = require('./utils/errors'); /* ОБРАБОТЧИК ОШИБОК */
+const { handlerMongoErrors, responseToError } = require('./utils/handlersErrors/handlerCommonErrors');
 
-const { checkLinkImg } = require('./middlewares/different');
+const HandlerNotFoundError = require('./utils/handlersErrors/HandlerNotFoundError');
+
+const { checkLinkImg, checkEmailSyntax } = require('./middlewares/different');
 
 const { auth } = require('./middlewares/auth');
 
@@ -38,8 +40,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/signin', login); /* АУТЕНТИФИКАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 
 /* РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ */
-/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-app.post('/signup', checkLinkImg, createUser);
+/* ПРОВЕРКА УНИКАЛЬНОСТИ EMAIL, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
+app.post('/signup', checkEmailSyntax, checkLinkImg, createUser);
 
 app.use(auth); /* ПРОВЕРКА АВТОРИЗАЦИИ */
 
@@ -47,17 +49,14 @@ app.use('/users', require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ П�
 
 app.use('/cards', require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
 
-app.use('*', (req, res) => {
-  const err = {
-    name: 'CustomNotFoundRoute',
-    message: 'Такого маршрута не имеется',
-  };
-  return handlerMongoErrors(err, res);
+app.use('*', (req, res, next) => {
+  next(new HandlerNotFoundError('Такого маршрута не нашлось'));
 });
 
 app.use(express.static(__dirname));
 
 /* ЦЕНТРАЛИЗОВАННЫЙ ОБРАБОТЧИК */
+// eslint-disable-next-line
 app.use((err, req, res, next) => {
   const mongoError = handlerMongoErrors(err);
 
@@ -71,5 +70,4 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log('ВСЁ РАБОТАЕТ');
 });

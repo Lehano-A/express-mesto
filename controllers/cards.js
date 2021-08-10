@@ -1,15 +1,12 @@
 const Card = require('../models/card');
 
-const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
-
-
 /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.send({ data: cards })
+      res.send({ data: cards });
     })
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 /* СОЗДАНИЕ КАРТОЧКИ */
@@ -30,7 +27,7 @@ module.exports.createCard = (req, res, next) => {
         },
       });
     })
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 /* УДАЛЕНИЕ КАРТОЧКИ */
@@ -38,8 +35,8 @@ module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   /* МИДЛВЭР ПРОВЕРИЛ ВЛАДЕЛЬЦА И НАЛИЧИЕ КАРТОЧКИ */
   return Card.findByIdAndRemove(cardId)
-    .then((card) => { res.send({ data: card }); })
-    .catch((err) => next(err));
+    .then((card) => res.send({ data: card }))
+    .catch(next);
 };
 
 /* ПОСТАВИТЬ ЛАЙК КАРТОЧКЕ */
@@ -51,9 +48,6 @@ module.exports.likeCard = (req, res, next) => {
   )
     .select('-createdAt')
     .then((card) => {
-      if (!card) {
-        throw next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'))
-      }
       res.send({ data: card });
     })
     .catch(next);
@@ -68,9 +62,6 @@ module.exports.dislikeCard = (req, res, next) => {
   )
     .select('-createdAt')
     .then((card) => {
-      if (!card) {
-        throw next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'))
-      }
       res.send({ data: card });
     })
     .catch(next);

@@ -1,12 +1,12 @@
 const router = require('express').Router();
 
+const { checkProfileOwner } = require('../middlewares/user');
+
 const { checkLinkImg } = require('../middlewares/different');
-const { checkUserToken, checkUpdateDataUser } = require('../middlewares/user')
 
 const {
   getUsers,
   getOneUser,
-  createUser,
   updateProfile,
   updateAvatar,
   getMyProfile,
@@ -18,14 +18,12 @@ router.get('/me', getMyProfile); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕ�
 
 router.get('/:userId', getOneUser); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
 
-router.post('/', createUser);
-
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ */
 /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
-router.patch('/me', checkUpdateDataUser, updateProfile);
+router.patch('/me', checkProfileOwner, updateProfile);
 
 /* ОБНОВЛЕНИЕ АВАТАРА */
 /* ПРОВЕРКА ВЛАДЕЛЬЦА НА ВЛАДЕЛЬЦА, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.patch('/me/avatar', checkLinkImg, updateAvatar);
+router.patch('/me/avatar', checkProfileOwner, checkLinkImg, updateAvatar);
 
 module.exports = router;
