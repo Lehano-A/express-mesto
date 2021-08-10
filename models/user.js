@@ -2,17 +2,19 @@ const bcrypt = require('bcryptjs');
 
 const mongoose = require('mongoose');
 
+const HandlerUnauthorizedError = require('../utils/handlersErrors/HandlerUnauthorizedError');
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: 2,
-    maxlength: 30,
+    minLength: 2,
+    maxLength: 30,
     default: 'Жак-Ив-Кусто',
   },
   about: {
     type: String,
-    minlength: 2,
-    maxlength: 30,
+    minLength: 2,
+    maxLength: 30,
     default: 'Исследователь',
   },
   avatar: {
@@ -28,21 +30,22 @@ const userSchema = new mongoose.Schema({
     type: String,
     minlength: 5,
     required: true,
+    select: false,
   },
 }, { versionKey: false });
 
 /* МЕТОД ПРОВЕРКИ ВАЛИДНОСТИ ПОЧТЫ И ТОКЕНА */
-userSchema.static('findUserByCredentials', function (email, password) {
-  return this.findOne({ email }) /* ПОИСК ПОЛЬЗОВАТЕЛЯ В БД */
+userSchema.static('findUserByCredentials', function checkEmailToken(email, password) {
+  return this.findOne({ email }).select('+password') /* ПОИСК ПОЛЬЗОВАТЕЛЯ В БД */
     .then((user) => {
       if (!user) { /* ЕСЛИ НЕ НАШЁЛСЯ */
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new HandlerUnauthorizedError('Неправильные почта или пароль'));
       }
       /* ЕСЛИ НАШЁЛСЯ */
       return bcrypt.compare(password, user.password) /* ПРОВЕРЯЕМ ВВЕДЁННЫЙ ПАРОЛЬ С ХЕШЕМ ПАРОЛЯ */
         .then((matched) => {
           if (!matched) { /* ЕСЛИ НЕ СОВПАЛ */
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(new HandlerUnauthorizedError('Неправильные почта или пароль'));
           }
           return user;
         });
