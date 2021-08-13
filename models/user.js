@@ -2,7 +2,11 @@ const bcrypt = require('bcryptjs');
 
 const mongoose = require('mongoose');
 
+const validator = require('validator');
+
 const HandlerUnauthorizedError = require('../utils/handlersErrors/HandlerUnauthorizedError');
+
+const { linkRegExp } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -20,15 +24,17 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: (v) => linkRegExp.test(v),
   },
   email: {
     type: String,
     unique: true,
     required: true,
+    validate: (v) => validator.isEmail(v),
   },
   password: {
     type: String,
-    minlength: 5,
+    minlength: 8,
     required: true,
     select: false,
   },

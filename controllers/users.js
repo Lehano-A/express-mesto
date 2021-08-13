@@ -6,6 +6,10 @@ const User = require('../models/user');
 
 const { JWT_SECRET_CODE } = process.env;
 
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
+
+const HandlerConflictError = require('../utils/handlersErrors/HandlerConflictError');
+
 /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -19,6 +23,9 @@ module.exports.getOneUser = (req, res, next) => {
 
   User.findById(userId)
     .then((user) => {
+      if (!user) {
+        next(new HandlerNotFoundError('Такой пользователь не найден в базе данных'));
+      }
       res.send({ data: user });
     })
     .catch(next);
@@ -50,7 +57,12 @@ module.exports.createUser = (req, res, next) => {
             },
           );
         })
-        .catch(next);
+        .catch((err) => {
+          if (err.code === 11000) {
+            next(new HandlerConflictError('Пользователь с таким email уже зарегистрирован'));
+          }
+          next(err);
+        });
     });
 };
 
@@ -75,7 +87,6 @@ module.exports.updateAvatar = (req, res, next) => {
 /* АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET_CODE, { expiresIn: '7d' }); /* СОЗДАЁМ ТОКЕН */
@@ -83,8 +94,8 @@ module.exports.login = (req, res, next) => {
       res.cookie('jwt', token, { /* ОТПРАВЛЯЕМ ТОКЕН В КУКИ КЛИЕНТУ */
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
-      })
-        .end(); /* ТЕЛА ОТВЕТА НЕТ, ПОЭТОМУ ЗАВЕРШАЕМ ПРОЦЕДУРУ ФУНКЦИЕЙ end() */
+      });
+      res.send({ message: 'Авторизация прошла успешно' });
     })
     .catch(next);
 };

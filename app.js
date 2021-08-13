@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 
+const helmet = require('helmet');
+
 const mongoose = require('mongoose');
 
 const bodyParser = require('body-parser');
@@ -10,20 +12,20 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
-const cookieParser = require('cookie-parser');
+const {
+  celebrate,
+  Joi,
+  errors,
+  Segments,
+} = require('celebrate');
 
-const { handlerMongoErrors, responseToError } = require('./utils/handlersErrors/handlerCommonErrors');
+const cookieParser = require('cookie-parser');
 
 const HandlerNotFoundError = require('./utils/handlersErrors/HandlerNotFoundError');
 
-const { checkLinkImg, checkEmailSyntax } = require('./middlewares/different');
-
 const { auth } = require('./middlewares/auth');
 
-const {
-  login,
-  createUser,
-} = require('./controllers/users');
+const { login, createUser } = require('./controllers/users');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -32,22 +34,69 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
+app.use(helmet());
+
 app.use(cookieParser());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', login); /* АУТЕНТИФИКАЦИЯ ПОЛЬЗОВАТЕЛЯ */
+app.post('/signin', celebrate({
+  [Segments.HEADERS]: Joi.object().keys({
+    'content-type': Joi.string(),
+    'content-length': Joi.string(),
+    'postman-token': Joi.string(),
+    cookie: Joi.string(),
+  }),
+  [Segments.BODY]: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), login); /* АУТЕНТИФИКАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 
 /* РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 /* ПРОВЕРКА УНИКАЛЬНОСТИ EMAIL, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-app.post('/signup', checkEmailSyntax, checkLinkImg, createUser);
+app.post('/signup', celebrate({
+  [Segments.HEADERS]: Joi.object().keys({
+    'content-type': Joi.string(),
+    'content-length': Joi.string(),
+    'postman-token': Joi.string(),
+    cookie: Joi.string(),
+  }),
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), createUser);
 
 app.use(auth); /* ПРОВЕРКА АВТОРИЗАЦИИ */
 
-app.use('/users', require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
+app.use('/users', celebrate({
+  [Segments.HEADERS]: Joi.object().keys({
+    'content-type': Joi.string(),
+    'content-length': Joi.string(),
+    'postman-token': Joi.string(),
+    cookie: Joi.string(),
+  }),
+  [Segments.COOKIES]: Joi.object().keys({
+    jwt: Joi.string(),
+  }),
+}), require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
 
-app.use('/cards', require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
+app.use('/cards', celebrate({
+  [Segments.HEADERS]: Joi.object().keys({
+    'content-type': Joi.string(),
+    'content-length': Joi.string(),
+    'postman-token': Joi.string(),
+    cookie: Joi.string(),
+  }),
+  [Segments.COOKIES]: Joi.object().keys({
+    jwt: Joi.string(),
+  }),
+}), require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
 
 app.use('*', (req, res, next) => {
   next(new HandlerNotFoundError('Такого маршрута не нашлось'));
@@ -55,18 +104,15 @@ app.use('*', (req, res, next) => {
 
 app.use(express.static(__dirname));
 
+app.use(errors());
+
 /* ЦЕНТРАЛИЗОВАННЫЙ ОБРАБОТЧИК */
 // eslint-disable-next-line
 app.use((err, req, res, next) => {
-  const mongoError = handlerMongoErrors(err);
-
-  if (mongoError) { /* ЕСЛИ ОШИБКА ОТ MONGO */
-    const { statusCode, message } = mongoError;
-    return responseToError(res, statusCode, message);
-  }
-
+  console.log(err.name, err.message)
   const { statusCode = 500, message } = err; /* ЕСЛИ HTTP-ОШИБКА */
-  return responseToError(res, statusCode, message);
+
+  res.status(statusCode).send({ message: statusCode === 500 ? 'Запрос не может быть выполнен. Возникла внутренняя ошибка сервера' : message });
 });
 
 app.listen(PORT, () => {

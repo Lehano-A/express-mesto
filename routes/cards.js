@@ -1,6 +1,7 @@
 const router = require('express').Router();
 
-const { checkLinkImg } = require('../middlewares/different');
+const { celebrate, Joi, Segments } = require('celebrate');
+
 const { checkCardOwner } = require('../middlewares/user');
 
 const {
@@ -14,15 +15,26 @@ const {
 router.get('/', getCards); /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 
 /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
-/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
-router.post('/', checkLinkImg, createCard);
+router.post('/', createCard);
 
 /* УДАЛЕНИЕ КАРТОЧКИ */
 /* ПРОВЕРКА ВЛАДЕЛЬЦА КАРТОЧКИ НА ВЛАДЕЛЬЦА */
-router.delete('/:cardId', checkCardOwner, deleteCard);
+router.delete('/:cardId', celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), checkCardOwner, deleteCard);
 
-router.put('/:cardId/likes', likeCard); /* ДОБАВЛЕНИЕ ЛАЙКА КАРТОЧКЕ */
+router.put('/:cardId/likes', celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), likeCard); /* ДОБАВЛЕНИЕ ЛАЙКА КАРТОЧКЕ */
 
-router.delete('/:cardId/likes', dislikeCard); /* УДАЛЕНИЕ ЛАЙКА У КАРТОЧКИ */
+router.delete('/:cardId/likes', celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), dislikeCard); /* УДАЛЕНИЕ ЛАЙКА У КАРТОЧКИ */
 
 module.exports = router;
