@@ -6,6 +6,8 @@ const HandlerForbiddenError = require('../utils/handlersErrors/HandlerForbiddenE
 
 const HandlerBadRequestError = require('../utils/handlersErrors/HandlerBadRequestError');
 
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
+
 /* ПРОВЕРКА ВЛАДЕЛЬЦА КАРТОЧКИ НА ВЛАДЕЛЬЦА */
 module.exports.checkCardOwner = (req, res, next) => {
   const { _id } = req.user; /* ПОЛУЧАЕМ _id ПОЛЬЗОВАТЕЛЯ ОТ МИДЛВЭРА auth */
@@ -13,7 +15,7 @@ module.exports.checkCardOwner = (req, res, next) => {
   Card.findById(req.params.cardId) /* ИЩЕМ КАРТОЧКУ */
     .then((card) => { /* ЕСЛИ КАРТОЧКА НАШЛАСЬ */
       if (!card) { /* НО ВНУТРИ ЕЁ ПО КАКИМ-ТО ПРИЧИНАМ НЕ ОКАЗАЛОСЬ */
-        throw next(new HandlerBadRequestError('Такая карточка не найдена в базе данных'));
+        throw next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
       }
       const owner = String(card.owner);
       /* ЕСЛИ ПОЛЬЗОВАТЕЛЬ НЕ СОВПАЛ С ВЛАДЕЛЬЦЕМ */

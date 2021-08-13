@@ -3,6 +3,9 @@ const errorsMessageList = {
   forModelCard: 'for model "card"',
   tooShorterLength: 'shorter than the minimum',
   tooLongerLength: 'longer than the maximum',
+  validatorLink: 'validation failed: link: Validator',
+  validatorAvatar: 'validation failed: avatar: Validator',
+  validatorEmail: 'validation failed: email: Validator',
 };
 
 const {
@@ -10,6 +13,9 @@ const {
   forModelCard,
   tooShorterLength,
   tooLongerLength,
+  validatorLink,
+  validatorEmail,
+  validatorAvatar,
 } = errorsMessageList;
 
 /* ОБРАБОТЧИК-СОСТАВИТЕЛЬ ОШИБОК ОТ MONGO */
@@ -39,8 +45,12 @@ module.exports.handlerMongoErrors = (err) => {
     return sendDataForError(err, 400, 'Максимальная длина поля составляет 30 символов');
   }
 
-  if (err.name === 'MongoError' && err.code === 11000) {
-    return sendDataForError(err, 409, 'Пользователь с таким email уже зарегистрирован');
+  if (err.name === 'ValidationError' && (err.message.includes(validatorLink) || err.message.includes(validatorAvatar))) {
+    return sendDataForError(err, 400, 'Недопустимый синтаксис. Ссылка на изображение должна начинаться с http://, https:// или ftp://, а заканчиваться на .ab, /abc, /abc# или форматами .png, .jpg или .jpeg');
+  }
+
+  if (err.name === 'ValidationError' && err.message.includes(validatorEmail)) {
+    return sendDataForError(err, 400, 'Недопустимый синтаксис. Проверьте корректность вводимых данных вашей почты. Пример: example@example.org');
   }
 
   if (err.name === 'JsonWebTokenError') {

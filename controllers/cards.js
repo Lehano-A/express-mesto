@@ -1,5 +1,7 @@
 const Card = require('../models/card');
 
+const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
+
 /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -48,6 +50,9 @@ module.exports.likeCard = (req, res, next) => {
   )
     .select('-createdAt')
     .then((card) => {
+      if (!card) {
+        next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
+      }
       res.send({ data: card });
     })
     .catch(next);
@@ -62,6 +67,9 @@ module.exports.dislikeCard = (req, res, next) => {
   )
     .select('-createdAt')
     .then((card) => {
+      if (!card) {
+        next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
+      }
       res.send({ data: card });
     })
     .catch(next);
