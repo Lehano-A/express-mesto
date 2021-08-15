@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const HandlerUnauthorizedError = require('../utils/handlersErrors/HandlerUnauthorizedError');
 
-const { JWT_SECRET_CODE } = process.env;
+const { JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
 
 module.exports.auth = (req, res, next) => {
   if (!req.cookies.jwt) { /* ЕСЛИ ТОКЕНА В ЗАПРОСЕ КЛИЕНТА НЕ НАЙДЕНО */

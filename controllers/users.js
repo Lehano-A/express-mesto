@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-const { JWT_SECRET_CODE } = process.env;
+const { JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
 
 const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
 
