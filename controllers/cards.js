@@ -51,9 +51,9 @@ module.exports.likeCard = (req, res, next) => {
     .select('-createdAt')
     .then((card) => {
       if (!card) {
-        next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
+        return next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
       }
-      res.send({ data: card });
+      return res.send({ data: card });
     })
     .catch(next);
 };
@@ -68,9 +68,9 @@ module.exports.dislikeCard = (req, res, next) => {
     .select('-createdAt')
     .then((card) => {
       if (!card) {
-        next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
+        return next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
       }
-      res.send({ data: card });
+      return res.send({ data: card });
     })
     .catch(next);
 };

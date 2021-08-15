@@ -109,10 +109,10 @@ app.use(errors());
 /* ЦЕНТРАЛИЗОВАННЫЙ ОБРАБОТЧИК */
 // eslint-disable-next-line
 app.use((err, req, res, next) => {
-  console.log(err.name, err.message)
+
   const { statusCode = 500, message } = err; /* ЕСЛИ HTTP-ОШИБКА */
 
-  res.status(statusCode).send({ message: statusCode === 500 ? 'Запрос не может быть выполнен. Возникла внутренняя ошибка сервера' : message });
+  return res.status(statusCode).send({ message: statusCode === 500 ? 'Запрос не может быть выполнен. Возникла внутренняя ошибка сервера' : message });
 });
 
 app.listen(PORT, () => {
