@@ -4,6 +4,8 @@ const { celebrate, Joi, Segments } = require('celebrate');
 
 const { checkCardOwner } = require('../middlewares/user');
 
+const { linkRegExp } = require('../utils/constants');
+
 const {
   getCards,
   createCard,
@@ -18,7 +20,7 @@ router.get('/', getCards); /* ПОЛУЧЕНИЕ ВСЕХ КАРТОЧЕК */
 router.post('/', celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
-    link: Joi.string().required(),
+    link: Joi.string().pattern(linkRegExp).required(),
   }),
 }), createCard);
 

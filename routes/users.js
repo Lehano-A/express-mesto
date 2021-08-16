@@ -12,22 +12,17 @@ const {
   getMyProfile,
 } = require('../controllers/users');
 
-router.get('/', celebrate({
-  [Segments.COOKIES]: Joi.object().keys({
-    jwt: Joi.string(),
-  }),
-}), getUsers); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
+router.get('/', getUsers); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
 
 router.get('/me', getMyProfile); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕМ СВОЕГО ПРОФАЙЛА */
 
 router.get('/:userId', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    _id: Joi.string().length(24).hex(),
+    userId: Joi.string().length(24).hex(),
   }),
 }), getOneUser); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
 
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ */
-/* ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
 router.patch('/me', celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
@@ -36,7 +31,6 @@ router.patch('/me', celebrate({
 }), updateProfile);
 
 /* ОБНОВЛЕНИЕ АВАТАРА */
-/* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
 router.patch('/me/avatar', celebrate({
   [Segments.BODY]: Joi.object().keys({
     avatar: Joi.string().pattern(linkRegExp).required(),

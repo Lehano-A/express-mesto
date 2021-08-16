@@ -16,7 +16,7 @@ module.exports.auth = (req, res, next) => {
   let payload;
   try {
     payload = jwt.verify(tokenFromCookie, JWT_SECRET_CODE);
-  } catch (err) { next(err); }
+  } catch (err) { next(new HandlerUnauthorizedError('Вам необходимо авторизоваться для получения доступа к ресурсу')); }
 
   /* ЗАПИСЫВАЕМ ОБЪЕКТ ПОЛЬЗОВАТЕЛЯ (ЕГО _id) В ОБЪЕКТ ЗАПРОСА */
   /* ЧТОБЫ ПОЛЬЗОВАТЬСЯ ЭТИМИ ДАННЫМИ ДАЛЬШЕ В МИДЛВАРАХ */
