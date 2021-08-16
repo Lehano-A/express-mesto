@@ -13,12 +13,6 @@ const {
 } = require('../controllers/users');
 
 router.get('/', celebrate({
-  [Segments.HEADERS]: Joi.object().keys({
-    'content-type': Joi.string(),
-    'content-length': Joi.string(),
-    'postman-token': Joi.string(),
-    cookie: Joi.string(),
-  }),
   [Segments.COOKIES]: Joi.object().keys({
     jwt: Joi.string(),
   }),
@@ -26,14 +20,18 @@ router.get('/', celebrate({
 
 router.get('/me', getMyProfile); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕМ СВОЕГО ПРОФАЙЛА */
 
-router.get('/:userId', getOneUser); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
+router.get('/:userId', celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    _id: Joi.string().length(24).hex(),
+  }),
+}), getOneUser); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID */
 
 /* ОБНОВЛЕНИЕ ПРОФИЛЯ */
 /* ПРОВЕРКА ДЛИНЫ ВНОСИМЫХ ОБНОВЛЕНИЙ */
 router.patch('/me', celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
+    name: Joi.string().min(2).max(30).required(),
+    about: Joi.string().min(2).max(30).required(),
   }),
 }), updateProfile);
 
@@ -41,7 +39,7 @@ router.patch('/me', celebrate({
 /* ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
 router.patch('/me/avatar', celebrate({
   [Segments.BODY]: Joi.object().keys({
-    avatar: Joi.string().pattern(linkRegExp),
+    avatar: Joi.string().pattern(linkRegExp).required(),
   }),
 }), updateAvatar);
 
