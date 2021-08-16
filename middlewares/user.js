@@ -1,10 +1,6 @@
 const Card = require('../models/card');
 
-const User = require('../models/user');
-
 const HandlerForbiddenError = require('../utils/handlersErrors/HandlerForbiddenError');
-
-const HandlerBadRequestError = require('../utils/handlersErrors/HandlerBadRequestError');
 
 const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
 
@@ -20,20 +16,6 @@ module.exports.checkCardOwner = (req, res, next) => {
       const owner = String(card.owner);
       /* ЕСЛИ ПОЛЬЗОВАТЕЛЬ НЕ СОВПАЛ С ВЛАДЕЛЬЦЕМ */
       if (_id !== owner) { return next(new HandlerForbiddenError('Недостаточно прав. Владельцем данной карточки является другой пользователь')); } /* ПРОВЕРЯЕМ ВЛАДЕЛЬЦА КАРТОЧКИ */
-      return next();
-    })
-    .catch(next);
-};
-
-/* ПРОВЕРКА ВЛАДЕЛЬЦА ПРОФИЛЯ НА ВЛАДЕЛЬЦА */
-module.exports.checkProfileOwner = (req, res, next) => {
-  const { _id } = req.user;
-
-  User.findById(_id)
-    .then((user) => {
-      if (!user) {
-        return next(new HandlerBadRequestError('Невозможно обновить данные профиля. Такой пользователь не найден в базе данных'));
-      }
       return next();
     })
     .catch(next);

@@ -27,6 +27,8 @@ const { auth } = require('./middlewares/auth');
 
 const { login, createUser } = require('./controllers/users');
 
+const { linkRegExp } = require('./utils/constants');
+
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -42,12 +44,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/signin', celebrate({
-  [Segments.HEADERS]: Joi.object().keys({
-    'content-type': Joi.string(),
-    'content-length': Joi.string(),
-    'postman-token': Joi.string(),
-    cookie: Joi.string(),
-  }),
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
@@ -57,16 +53,10 @@ app.post('/signin', celebrate({
 /* РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 /* ПРОВЕРКА УНИКАЛЬНОСТИ EMAIL, ПРОВЕРКА КОРРЕКТНОСТИ ССЫЛКИ НА ИЗОБРАЖЕНИЕ */
 app.post('/signup', celebrate({
-  [Segments.HEADERS]: Joi.object().keys({
-    'content-type': Joi.string(),
-    'content-length': Joi.string(),
-    'postman-token': Joi.string(),
-    cookie: Joi.string(),
-  }),
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
+    avatar: Joi.string().required().pattern(linkRegExp),
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
   }),
@@ -75,24 +65,12 @@ app.post('/signup', celebrate({
 app.use(auth); /* ПРОВЕРКА АВТОРИЗАЦИИ */
 
 app.use('/users', celebrate({
-  [Segments.HEADERS]: Joi.object().keys({
-    'content-type': Joi.string(),
-    'content-length': Joi.string(),
-    'postman-token': Joi.string(),
-    cookie: Joi.string(),
-  }),
   [Segments.COOKIES]: Joi.object().keys({
     jwt: Joi.string(),
   }),
 }), require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
 
 app.use('/cards', celebrate({
-  [Segments.HEADERS]: Joi.object().keys({
-    'content-type': Joi.string(),
-    'content-length': Joi.string(),
-    'postman-token': Joi.string(),
-    cookie: Joi.string(),
-  }),
   [Segments.COOKIES]: Joi.object().keys({
     jwt: Joi.string(),
   }),
