@@ -56,7 +56,7 @@ app.post('/signup', celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().required().pattern(linkRegExp),
+    avatar: Joi.string().pattern(linkRegExp),
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
   }),
@@ -64,17 +64,9 @@ app.post('/signup', celebrate({
 
 app.use(auth); /* ПРОВЕРКА АВТОРИЗАЦИИ */
 
-app.use('/users', celebrate({
-  [Segments.COOKIES]: Joi.object().keys({
-    jwt: Joi.string(),
-  }),
-}), require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
+app.use('/users', require('./routes/users')); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ИЛИ СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ */
 
-app.use('/cards', celebrate({
-  [Segments.COOKIES]: Joi.object().keys({
-    jwt: Joi.string(),
-  }),
-}), require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
+app.use('/cards', require('./routes/cards')); /* ДОБАВЛЕНИЕ НОВОЙ КАРТОЧКИ */
 
 app.use('*', (req, res, next) => {
   next(new HandlerNotFoundError('Такого маршрута не нашлось'));
