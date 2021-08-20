@@ -21,6 +21,8 @@ const {
 
 const cookieParser = require('cookie-parser');
 
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+
 const HandlerNotFoundError = require('./utils/handlersErrors/HandlerNotFoundError');
 
 const { auth } = require('./middlewares/auth');
@@ -42,6 +44,19 @@ app.use(cookieParser());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://mesto-project-lehano.nomoredomains.club/');
+  next();
+});
 
 app.post('/signin', celebrate({
   [Segments.BODY]: Joi.object().keys({
@@ -73,6 +88,8 @@ app.use('*', (req, res, next) => {
 });
 
 app.use(express.static(__dirname));
+
+app.use(errorLogger);
 
 app.use(errors());
 
