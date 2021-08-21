@@ -47,15 +47,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
+app.use('/', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://mesto-project-lehano.nomoredomains.club/');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+  next();
+});
+
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Сервер сейчас упадёт');
   }, 0);
-});
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://mesto-project-lehano.nomoredomains.club/');
-  next();
 });
 
 app.post('/signin', celebrate({
