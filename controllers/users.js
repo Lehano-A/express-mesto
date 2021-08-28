@@ -110,7 +110,6 @@ module.exports.getMyProfile = (req, res, next) => {
           name: user.name,
           about: user.about,
           avatar: user.avatar,
-          ascsaddsa: req
         },
       });
     })
