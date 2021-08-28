@@ -19,6 +19,8 @@ const {
   Segments,
 } = require('celebrate');
 
+const cors = require('cors');
+
 const cookieParser = require('cookie-parser');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
@@ -38,6 +40,14 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
+app.use(cors({
+  origin: 'https://mesto-project-lehano.nomoredomains.club',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
+
 app.use(helmet());
 
 app.use(cookieParser());
@@ -46,14 +56,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
-
-app.use('/', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://mesto-project-lehano.nomoredomains.club/');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-
-  next();
-});
 
 app.get('/crash-test', () => {
   setTimeout(() => {
