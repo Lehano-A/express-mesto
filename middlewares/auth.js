@@ -4,9 +4,10 @@ const jwt = require('jsonwebtoken');
 
 const HandlerUnauthorizedError = require('../utils/handlersErrors/HandlerUnauthorizedError');
 
-const { JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
+const { NODE_ENV, JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
 
 module.exports.auth = (req, res, next) => {
+
   if (!req.cookies.jwt) { /* ЕСЛИ ТОКЕНА В ЗАПРОСЕ КЛИЕНТА НЕ НАЙДЕНО */
     return next(new HandlerUnauthorizedError('Вам необходимо авторизоваться для получения доступа к ресурсу'));
   }
@@ -15,7 +16,7 @@ module.exports.auth = (req, res, next) => {
   const tokenFromCookie = req.cookies.jwt; /* ПРОВЕРКА ТОКЕНА ИЗ КУКИ КЛИЕНТА С ТОКЕНОМ В БД */
   let payload;
   try {
-    payload = jwt.verify(tokenFromCookie, JWT_SECRET_CODE);
+    payload = jwt.verify(tokenFromCookie, NODE_ENV === 'production' ? JWT_SECRET_CODE : 'development');
   } catch (err) { next(new HandlerUnauthorizedError('Вам необходимо авторизоваться для получения доступа к ресурсу')); }
 
   /* ЗАПИСЫВАЕМ ОБЪЕКТ ПОЛЬЗОВАТЕЛЯ (ЕГО _id) В ОБЪЕКТ ЗАПРОСА */

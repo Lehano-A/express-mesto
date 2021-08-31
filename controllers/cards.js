@@ -19,14 +19,12 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner: _id })
     .then((card) => {
       res.send({
-        data:
-        {
-          _id: card._id,
-          name: card.name,
-          link: card.link,
-          owner: card.owner,
-          createdAt: card.createdAt,
-        },
+        _id: card._id,
+        name: card.name,
+        link: card.link,
+        likes: card.likes,
+        owner: card.owner,
+        createdAt: card.createdAt,
       });
     })
     .catch(next);
@@ -34,6 +32,7 @@ module.exports.createCard = (req, res, next) => {
 
 /* УДАЛЕНИЕ КАРТОЧКИ */
 module.exports.deleteCard = (req, res, next) => {
+  
   const { cardId } = req.params;
   /* МИДЛВЭР ПРОВЕРИЛ ВЛАДЕЛЬЦА И НАЛИЧИЕ КАРТОЧКИ */
   return Card.findByIdAndRemove(cardId)
@@ -43,6 +42,7 @@ module.exports.deleteCard = (req, res, next) => {
 
 /* ПОСТАВИТЬ ЛАЙК КАРТОЧКЕ */
 module.exports.likeCard = (req, res, next) => {
+
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -53,7 +53,7 @@ module.exports.likeCard = (req, res, next) => {
       if (!card) {
         return next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
       }
-      return res.send({ data: card });
+      return res.send(card);
     })
     .catch(next);
 };
@@ -70,7 +70,7 @@ module.exports.dislikeCard = (req, res, next) => {
       if (!card) {
         return next(new HandlerNotFoundError('Такая карточка не найдена в базе данных'));
       }
-      return res.send({ data: card });
+      return res.send(card);
     })
     .catch(next);
 };

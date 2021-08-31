@@ -10,11 +10,14 @@ const {
   updateProfile,
   updateAvatar,
   getMyProfile,
+  logoutUser,
 } = require('../controllers/users');
 
 router.get('/', getUsers); /* ПОЛУЧЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ */
 
 router.get('/me', getMyProfile); /* ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕМ СВОЕГО ПРОФАЙЛА */
+
+router.get('/logout', logoutUser);
 
 router.get('/:userId', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
@@ -36,5 +39,7 @@ router.patch('/me/avatar', celebrate({
     avatar: Joi.string().pattern(linkRegExp).required(),
   }),
 }), updateAvatar);
+
+
 
 module.exports = router;

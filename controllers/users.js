@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-const { JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
+const { NODE_ENV, JWT_SECRET_CODE = 'AbCdEfGhI02961' } = process.env;
 
 const HandlerNotFoundError = require('../utils/handlersErrors/HandlerNotFoundError');
 
@@ -71,7 +71,7 @@ module.exports.updateProfile = (req, res, next) => {
   const { _id } = req.user;
 
   User.findByIdAndUpdate(_id, req.body, { new: true, runValidators: true })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch(next);
 };
 
@@ -79,16 +79,17 @@ module.exports.updateProfile = (req, res, next) => {
 module.exports.updateAvatar = (req, res, next) => {
   const { _id } = req.user;
   return User.findByIdAndUpdate(_id, req.body, { new: true })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch(next);
 };
 
 /* АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ */
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET_CODE, { expiresIn: '7d' }); /* СОЗДАЁМ ТОКЕН */
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET_CODE : 'development', { expiresIn: '7d' }); /* СОЗДАЁМ ТОКЕН */
 
       res.cookie('jwt', token, { /* ОТПРАВЛЯЕМ ТОКЕН В КУКИ КЛИЕНТУ */
         maxAge: 3600000 * 24 * 7,
@@ -104,14 +105,17 @@ module.exports.getMyProfile = (req, res, next) => {
   User.findById({ _id: req.user._id }) /* ИСПОЛЬЗУЕМ _id ИЗ МИДЛВАРА auth */
     .then((user) => {
       res.send({
-        data:
-        {
-          _id: user._id,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-        },
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
       });
     })
     .catch(next);
+};
+
+/* ВЫХОД ИЗ СИСТЕМЫ */
+module.exports.logoutUser = (req, res) => {
+  res.clearCookie('jwt');
+  res.send({ message: 'Вы успешно вышли из системы' });
 };
